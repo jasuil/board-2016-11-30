@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="definition">
+ 
+<update id='tbl_board'> 
+create table tbl_board (bno int, title varchar2(100), content varchar2(4000), writer varchar2(100), regdate date, viewcnt int);
+alter table tbl_board modify(regdate date default sysdate);
+begin
+for n in 1.. 1001 loop
+insert into tbl_board (bno,title,content,writer, viewcnt)
+values (n, 't'|| n, 'c'||n,'w'||n, 0);
+end loop;
+end;
+/
+
+create unique index bno_idx on tbl_board (bno);
+</update>
+
+</mapper>

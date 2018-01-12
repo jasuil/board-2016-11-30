@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="oracleDb2">
+ 
+ <select id="showlistAll" resultType="com.dbmonitor.domain.boardVO">
+   <if test='searchType == null'>  <!-- 그냥 목록 조회와 검색을 통한 목록 조회를 아예 구분지어놨다. -->
+ <![CDATA[
+ select 
+  bno, title, content, writer, regdate, viewcnt 
+  from tbl_board
+  where
+  bno<=#{totalCount}-#{pageStart} and bno> #{totalCount}-#{pageStart}-#{perPageNum}
+  order by bno desc, regdate desc
+  ]]>
+    </if> 
+    <if test='searchType != null'>
+    select 
+ 	c.bno, c.title, c.content, c.writer, c.regdate, c.viewcnt 
+ 	from
+ 	(select rownum as "b", a.* from tbl_board a
+    <if test='searchType == "title".toString()'>
+    where a.title like  '%' || #{keyword} || '%' 
+    </if>
+    <if test='searchType == "content".toString()'>
+    where a.content like  '%' || #{keyword} || '%' 
+    </if>
+    <if test='searchType == "writer".toString()'>
+    where a.writer like  '%' || #{keyword} || '%'  
+    </if>
+    <if test='searchType == "title_writer".toString()'>
+    where a.title like  '%' || #{keyword} || '%' or  a.writer like  '%' || #{keyword} || '%'  
+    </if>
+     <if test='searchType == "title_content".toString()'>
+    where a.title like  '%' || #{keyword} || '%'  or  a.content like  '%' || #{keyword} || '%' 
+    </if>
+    <if test='searchType == "content_writer".toString()'>
+    where a.content like  '%' || #{keyword} || '%'  or  a.writer like  '%' || #{keyword} || '%'  
+    </if>
+     <if test='searchType == "title_content_writer".toString()'>
+    where a.writer like  '%' || #{keyword} || '%'  or  a.content like  '%' || #{keyword} || '%'  or  a.title like  '%' || #{keyword} || '%' 
+    </if>
+    order by "b" desc) c
+     <![CDATA[ 
+ 	where c."b"<=#{totalCount}-#{pageStart} and c."b"> #{totalCount}-#{pageStart}-#{perPageNum}
+ 	order by c.bno desc, c.regdate desc
+    ]]>
+   </if>
+ </select>
+
+ <select id="listCriteria" parameterType='com.dbmonitor.domain.Criteria'  resultType="com.dbmonitor.domain.boardVO"> 
+ <![CDATA[
+ select 
+  bno, title, content, writer, regdate, viewcnt 
+  from tbl_board where bno>0 and 
+  bno<=#{totalCount}-#{pageStart} and bno> #{totalCount}-#{pageStart}-#{perPageNum}
+  order by bno desc, regdate desc
+  ]]>
+ </select>
+
+<select id='read' parameterType='integer' resultType='com.dbmonitor.domain.boardVO'>
+select * from tbl_board where bno = #{id} 
+</select>
+
+<select id='countPaging'  resultType='int'>
+select max(bno) from tbl_board
+</select>
+
+<select id='countPaging_search'  resultType='int'>
+select count(*) from tbl_board
+  <if test='searchType != null'>  
+    <if test='searchType == "title".toString()'>
+    where title like  '%' || #{keyword} || '%' 
+    </if>
+    <if test='searchType == "content".toString()'>
+    where content like  '%' || #{keyword} || '%' 
+    </if>
+    <if test='searchType == "writer".toString()'>
+    where writer like  '%' || #{keyword} || '%'  
+    </if>
+    <if test='searchType == "title_writer".toString()'>
+    where title like  '%' || #{keyword} || '%' or  writer like  '%' || #{keyword} || '%'  
+    </if>
+     <if test='searchType == "title_content".toString()'>
+    where title like  '%' || #{keyword} || '%'  or  content like  '%' || #{keyword} || '%' 
+    </if>
+    <if test='searchType == "content_writer".toString()'>
+    where content like  '%' || #{keyword} || '%'  or  writer like  '%' || #{keyword} || '%'  
+    </if>
+     <if test='searchType == "title_content_writer".toString()'>
+    where writer like  '%' || #{keyword} || '%'  or  content like  '%' || #{keyword} || '%'  or  title like  '%' || #{keyword} || '%' 
+    </if>
+    </if>
+</select>
+
+
+<insert id='insert_list' parameterType='com.dbmonitor.domain.boardVO'>
+ <![CDATA[
+insert into tbl_board 
+(bno, title, content, writer, regdate, viewcnt) 
+values ((select decode(max(bno),null,1,max(bno)+1) from tbl_board),
+#{title}, #{content}, #{writer}, sysdate, 0)
+]]>
+</insert>
+
+<delete id='delete' parameterType='integer'>
+delete tbl_board where bno=#{bno}
+</delete>
+
+<update id='update' parameterType='com.dbmonitor.domain.boardVO'>
+update tbl_board set title=#{title}, content=#{content}, writer=#{writer}
+where bno = #{bno}
+</update>
+
+
+
+ </mapper>
